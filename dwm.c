@@ -234,6 +234,7 @@ static void updatestatus(void);
 static void updatewindowtype(Client *c);
 static void updatetitle(Client *c);
 static void updatewmhints(Client *c);
+static Bool validate(Display* dpy, XEvent* ev, char* data);
 static void view(const Arg *arg);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
@@ -1388,9 +1389,15 @@ run(void) {
 	XEvent ev;
 	/* main event loop */
 	XSync(dpy, False);
-	while(running && !XNextEvent(dpy, &ev))
-		if(handler[ev.type])
-			handler[ev.type](&ev); /* call handler */
+	while(running)
+	{
+		/* X11 events */
+		if(XCheckIfEvent(dpy, &ev, validate, NULL))
+		{
+			if(handler[ev.type])
+				handler[ev.type](&ev); /* call handler */
+		}
+	}
 }
 
 void
@@ -1998,6 +2005,11 @@ updatewmhints(Client *c) {
 			c->neverfocus = False;
 		XFree(wmh);
 	}
+}
+
+Bool
+validate(Display* dpy, XEvent* ev, char* data) {
+	return True; /* we accept all events */
 }
 
 void
