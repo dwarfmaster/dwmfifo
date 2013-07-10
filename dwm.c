@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/select.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
@@ -1387,12 +1388,24 @@ restack(Monitor *m) {
 void
 run(void) {
 	XEvent ev;
+	fd_set readfs;
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 20000; /* 20 milliseconds */
+
 	/* main event loop */
 	XSync(dpy, False);
 	while(running)
 	{
+		/* Commands */
+		FD_ZERO(&readfs);
+		FD_SET(commandsDesc, &readfs);
+		select(commandsDesc + 1, &readfs, NULL, NULL, &tv);
+		if(FD_ISSET(commandsDesc, &readfs))
+			processCommands();
+
 		/* X11 events */
-		if(XCheckIfEvent(dpy, &ev, validate, NULL))
+		while(XCheckIfEvent(dpy, &ev, validate, NULL))
 		{
 			if(handler[ev.type])
 				handler[ev.type](&ev); /* call handler */
