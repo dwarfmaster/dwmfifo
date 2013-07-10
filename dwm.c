@@ -57,11 +57,6 @@
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_font_getexts_width(drw->font, X, strlen(X)) + drw->font->h)
 
-/* commands */
-char* commandsName[] = { "quit", "close", "nexttag", "prevtag", NULL };
-int commandsDesc; // Pipe in write mode
-char* fifoName = "dwm.fifo";
-
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
@@ -115,6 +110,12 @@ typedef struct {
 	const char *symbol;
 	void (*arrange)(Monitor *);
 } Layout;
+
+typedef struct {
+	const char* symbol;
+	void (*func)(const Arg *);
+	const Arg arg;
+} Command;
 
 struct Monitor {
 	char ltsymbol[16];
@@ -191,6 +192,7 @@ static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *c);
+static void processCommands(void);
 static void pop(Client *);
 static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
@@ -273,9 +275,18 @@ static Drw *drw;
 static Fnt *fnt;
 static Monitor *mons, *selmon;
 static Window root;
+static int commandsDesc; /* Pipe in write mode */
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
+
+/* TODO must be moved to config.h.in */
+char* fifoName = "dwm.fifo";
+Command cmds[] = {
+	/* command          function        argument */
+	{  "quit",          quit,           {0}},
+	{  "term",          spawn,          {.v = termcmd } },
+};
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -1195,6 +1206,23 @@ Client *
 nexttiled(Client *c) {
 	for(; c && (c->isfloating || !ISVISIBLE(c)); c = c->next);
 	return c;
+}
+
+void
+processCommands(void)
+{
+	char buffer[256];
+	int i;
+	read(commandsDesc, buffer, 256);
+	
+	for(i = 0; i < LENGTH(cmds); ++i)
+	{
+		if(strcmp(buffer, cmds[i].symbol) == 0)
+		{
+			(*cmds[i].func)(&cmds[i].arg);
+			return;
+		}
+	}
 }
 
 void
