@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
@@ -57,9 +58,9 @@
 #define TEXTW(X)                (drw_font_getexts_width(drw->font, X, strlen(X)) + drw->font->h)
 
 /* commands */
-enum FifoCommands      {  QUIT,   CLOSE,   NEXTTAG,   PREVTAG  };
-char* commandsName[] = { "quit", "close", "nexttag", "prevtag" };
-unsigned int commandsNumber = 4u;
+char* commandsName[] = { "quit", "close", "nexttag", "prevtag", NULL };
+int commandsDesc; // Pipe in write mode
+char* fifoName = "dwm.fifo";
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
@@ -158,6 +159,7 @@ static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clearurgent(Client *c);
 static void clientmessage(XEvent *e);
+static void commandsetup(void);
 static void configure(Client *c);
 static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
@@ -538,6 +540,16 @@ clientmessage(XEvent *e) {
 		}
 		pop(c);
 	}
+}
+
+void
+commandsetup(void) {
+	if(mkfifo(fifoName, 0666) != 0)
+		die("Couldn't create fifo tube \"%s\"", fifoName);
+	
+	commandsDesc = open(fifoName, O_RDONLY);
+	if(commandsDesc == -1)
+		die("Couldn't open the fifo tube.");
 }
 
 void
@@ -2058,6 +2070,7 @@ main(int argc, char *argv[]) {
 	checkotherwm();
 	setup();
 	scan();
+	commandsetup();
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
