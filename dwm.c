@@ -56,6 +56,11 @@
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_font_getexts_width(drw->font, X, strlen(X)) + drw->font->h)
 
+/* commands */
+enum FifoCommands      {  QUIT,   CLOSE,   NEXTTAG,   PREVTAG  };
+char* commandsName[] = { "quit", "close", "nexttag", "prevtag" };
+unsigned int commandsNumber = 4u;
+
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel, SchemeLast }; /* color schemes */
