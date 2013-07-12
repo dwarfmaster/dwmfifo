@@ -283,14 +283,6 @@ static int commandsDesc; /* Pipe in write mode */
 /* configuration, allows nested code to access above variables */
 #include "config.h"
 
-/* TODO must be moved to config.h.in */
-char* fifoName = "/tmp/dwm.fifo";
-Command cmds[] = {
-	/* command          function        argument */
-	{  "quit",          quit,           {0}},
-	{  "term",          spawn,          {.v = termcmd } },
-};
-
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 

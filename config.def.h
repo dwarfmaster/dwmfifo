@@ -107,3 +107,11 @@ static Button buttons[] = {
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
 
+/* FIFO commands */
+char* fifoName = "/tmp/dwm.fifo";
+Command cmds[] = {
+	/* command name     function        argument */
+	{  "quit",          quit,           {0}},
+	{  "term",          spawn,          {.v = termcmd } },
+};
+
