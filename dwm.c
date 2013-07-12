@@ -162,6 +162,7 @@ static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clearurgent(Client *c);
 static void clientmessage(XEvent *e);
+static void commandsclose(void);
 static void commandsetup(void);
 static void configure(Client *c);
 static void configurenotify(XEvent *e);
@@ -546,6 +547,12 @@ clientmessage(XEvent *e) {
 		}
 		pop(c);
 	}
+}
+
+void
+commandsclose(void) {
+	close(commandsDesc);
+	remove(fifoPath);
 }
 
 void
@@ -2123,6 +2130,7 @@ main(int argc, char *argv[]) {
 	scan();
 	commandsetup();
 	run();
+	commandsclose();
 	cleanup();
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
