@@ -108,8 +108,8 @@ static Button buttons[] = {
 };
 
 /* FIFO commands */
-char* fifoName = "/tmp/dwm.fifo";
-Command cmds[] = {
+char* fifoPath = "/tmp/dwm.fifo";
+Command fifos[] = {
 	/* command name     function        argument */
 	{  "quit",          quit,           {0}},
 	{  "term",          spawn,          {.v = termcmd } },

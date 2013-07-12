@@ -550,11 +550,11 @@ clientmessage(XEvent *e) {
 
 void
 commandsetup(void) {
-	if(mkfifo(fifoName, 0777) != 0)
-		die("Couldn't create fifo tube \"%s\"", fifoName);
+	if(mkfifo(fifoPath, 0777) != 0)
+		die("Couldn't create fifo tube \"%s\"", fifoPath);
 
 	/* open both in write and read mode for select : only read is used */
-	commandsDesc = open(fifoName, O_RDWR | O_NONBLOCK);
+	commandsDesc = open(fifoPath, O_RDWR | O_NONBLOCK);
 	if(commandsDesc == -1)
 		die("Couldn't open the fifo tube.");
 }
@@ -1213,12 +1213,12 @@ processCommands(void)
 	if(read(commandsDesc, buffer, 256) <= 0)
 		return;
 	
-	for(i = 0; i < LENGTH(cmds); ++i)
+	for(i = 0; i < LENGTH(fifos); ++i)
 	{
-		if(strcmp(buffer, cmds[i].symbol) == 0)
+		if(strcmp(buffer, fifos[i].symbol) == 0)
 		{
-			if(cmds[i].func)
-				(*cmds[i].func)(&cmds[i].arg);
+			if(fifos[i].func)
+				(*fifos[i].func)(&fifos[i].arg);
 			return;
 		}
 	}
