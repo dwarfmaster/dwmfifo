@@ -29,6 +29,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/select.h>
@@ -283,7 +284,7 @@ static int commandsDesc; /* Pipe in write mode */
 #include "config.h"
 
 /* TODO must be moved to config.h.in */
-char* fifoName = "dwm.fifo";
+char* fifoName = "/tmp/dwm.fifo";
 Command cmds[] = {
 	/* command          function        argument */
 	{  "quit",          quit,           {0}},
@@ -557,10 +558,11 @@ clientmessage(XEvent *e) {
 
 void
 commandsetup(void) {
-	if(mkfifo(fifoName, 0666) != 0)
+	if(mkfifo(fifoName, 0777) != 0)
 		die("Couldn't create fifo tube \"%s\"", fifoName);
-	
-	commandsDesc = open(fifoName, O_RDONLY);
+
+	/* open both in write and read mode for select : only read is used */
+	commandsDesc = open(fifoName, O_RDWR | O_NONBLOCK);
 	if(commandsDesc == -1)
 		die("Couldn't open the fifo tube.");
 }
@@ -1215,13 +1217,16 @@ processCommands(void)
 {
 	char buffer[256];
 	int i;
-	read(commandsDesc, buffer, 256);
+
+	if(read(commandsDesc, buffer, 256) <= 0)
+		return;
 	
 	for(i = 0; i < LENGTH(cmds); ++i)
 	{
 		if(strcmp(buffer, cmds[i].symbol) == 0)
 		{
-			(*cmds[i].func)(&cmds[i].arg);
+			if(cmds[i].func)
+				(*cmds[i].func)(&cmds[i].arg);
 			return;
 		}
 	}
@@ -1389,9 +1394,8 @@ void
 run(void) {
 	XEvent ev;
 	fd_set readfs;
+	int selret;
 	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 20000; /* 20 milliseconds */
 
 	/* main event loop */
 	XSync(dpy, False);
@@ -1400,8 +1404,10 @@ run(void) {
 		/* Commands */
 		FD_ZERO(&readfs);
 		FD_SET(commandsDesc, &readfs);
-		select(commandsDesc + 1, &readfs, NULL, NULL, &tv);
-		if(FD_ISSET(commandsDesc, &readfs))
+		tv.tv_sec = 0;
+		tv.tv_usec = 20000; /* 20 milliseconds */
+		selret = select(commandsDesc + 1, &readfs, NULL, NULL, &tv);
+		if(selret > 0 && FD_ISSET(commandsDesc, &readfs))
 			processCommands();
 
 		/* X11 events */
