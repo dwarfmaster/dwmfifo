@@ -70,7 +70,7 @@ Command fifos[] = {
 	{  "close",         killclient,     {0} },
 	{  "tile",          setlayout,      {.v = &layouts[0] } },
 	{  "float",         setlayout,      {.v = &layouts[1] } },
-	{  "mono",          setlayout,      {.v = &layouts[3] } },
+	{  "mono",          setlayout,      {.v = &layouts[2] } },
 	{  "nextmon",       focusmon,       {.i = +1 } },
 	{  "prevmon",       focusmon,       {.i = -1 } },
 	{  "sendnmon",      tagmon,         {.i = +1 } },
