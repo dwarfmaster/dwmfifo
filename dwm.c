@@ -1222,7 +1222,7 @@ processCommands(void)
 	
 	for(i = 0; i < LENGTH(fifos); ++i)
 	{
-		if(strcmp(buffer, fifos[i].symbol) == 0)
+		if(memcmp(buffer, fifos[i].symbol, strlen(fifos[i].symbol)) == 0)
 		{
 			if(fifos[i].func)
 				(*fifos[i].func)(&fifos[i].arg);
