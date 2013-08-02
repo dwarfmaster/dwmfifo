@@ -184,7 +184,6 @@ static Bool getrootptr(int *x, int *y);
 static long getstate(Window w);
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, Bool focused);
-static void grabkeys(void);
 static void incnmaster(const Arg *arg);
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
@@ -482,7 +481,6 @@ cleanup(void) {
 	for(m = mons; m; m = m->next)
 		while(m->stack)
 			unmanage(m->stack, False);
-	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	while(mons)
 		cleanupmon(mons);
 	drw_cur_free(drw, cursor[CurNormal]);
@@ -971,23 +969,6 @@ grabbuttons(Client *c, Bool focused) {
 }
 
 void
-grabkeys(void) {
-	updatenumlockmask();
-	{
-		unsigned int i, j;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
-		KeyCode code;
-
-		XUngrabKey(dpy, AnyKey, AnyModifier, root);
-		for(i = 0; i < LENGTH(keys); i++)
-			if((code = XKeysymToKeycode(dpy, keys[i].keysym)))
-				for(j = 0; j < LENGTH(modifiers); j++)
-					XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
-						 True, GrabModeAsync, GrabModeAsync);
-	}
-}
-
-void
 incnmaster(const Arg *arg) {
 	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
 	arrange(selmon);
@@ -1099,10 +1080,7 @@ manage(Window w, XWindowAttributes *wa) {
 void
 mappingnotify(XEvent *e) {
 	XMappingEvent *ev = &e->xmapping;
-
 	XRefreshKeyboardMapping(ev);
-	if(ev->request == MappingKeyboard)
-		grabkeys();
 }
 
 void
@@ -1611,7 +1589,6 @@ setup(void) {
 	                |EnterWindowMask|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
 	XSelectInput(dpy, root, wa.event_mask);
-	grabkeys();
 }
 
 void
