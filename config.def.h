@@ -60,5 +60,20 @@ char* fifoPath = "/tmp/dwm.fifo";
 Command fifos[] = {
 	/* command name     function        argument */
 	{  "quit",          quit,           {0}},
+	{  "stack_next",    focusstack,     {.i = +1 } },
+	{  "stack_prev",    focusstack,     {.i = -1 } },
+	{  "incnmaster",    incnmaster,     {.i = +1 } },
+	{  "decnmaster",    incnmaster,     {.i = -1 } },
+	{  "incmfact",      setmfact,       {.f = +0.05} },
+	{  "decmfact",      setmfact,       {.f = -0.05} },
+	{  "setmaster",     zoom,           {0} },
+	{  "close",         killclient,     {0} },
+	{  "tile",          setlayout,      {.v = &layouts[0] } },
+	{  "float",         setlayout,      {.v = &layouts[1] } },
+	{  "mono",          setlayout,      {.v = &layouts[3] } },
+	{  "nextmon",       focusmon,       {.i = +1 } },
+	{  "prevmon",       focusmon,       {.i = -1 } },
+	{  "sendnmon",      tagmon,         {.i = +1 } },
+	{  "sendpmon",      tagmon,         {.i = -1 } },
 };
 
